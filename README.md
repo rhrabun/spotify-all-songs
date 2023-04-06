@@ -5,7 +5,7 @@ This is my attempt to learn Go
 
 
 ### Build
-go build -o bin/spotify
+`go build -o bin/spotify`
 
 ### Run
-SPOTIFY_ID="{id}" SPOTIFY_SECRET="{Secret}" go run bin/spotify
+`SPOTIFY_ID="<id>" SPOTIFY_SECRET="<Secret>" go run bin/spotify`
