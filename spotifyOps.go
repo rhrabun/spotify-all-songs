@@ -33,7 +33,6 @@ func GetPlaylistTracks(client *spotify.Client, ctx context.Context, playlistId s
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Printf("Total of %d tracks", res.Total)
 
 	for page := 1; ; page++ {
 		tracks = append(tracks, res.Items...)

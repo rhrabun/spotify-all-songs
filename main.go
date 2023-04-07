@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/zmb3/spotify/v2"
 )
@@ -20,7 +21,7 @@ func main() {
 		i := 0
 		for _, item := range playlists {
 			if item.Name == "All Songs" {
-				fmt.Printf("Found playlist %s with ID: %s\n", item.Name, item.ID)
+				log.Printf("Found playlist %s with ID: %s\n", item.Name, item.ID)
 				allSongsId = item.ID
 			} else if item.Owner.DisplayName == "Afandi_bobo" && !strings.HasPrefix(item.Name, "_") {
 				playlists[i] = item
@@ -37,12 +38,25 @@ func main() {
 	allSongsTracks := GetPlaylistTracks(client, ctx, allSongsId)
 
 	// Get songs from other playlists
+	wg := sync.WaitGroup{}
+	mut := sync.Mutex{}
 	var otherSongs []spotify.ID
+
+	log.Println("Gettings songs from other playlists")
+	// For each playlist run concurrent function to extract songs and add them to original slice by pointer
 	for _, item := range playlists {
-		log.Printf("Getting songs from playlist %s\n", item.Name)
-		playlistSongs := GetPlaylistTracks(client, ctx, item.ID)
-		otherSongs = append(otherSongs, playlistSongs...)
+		wg.Add(1)
+		go func(client *spotify.Client, ctx context.Context, item spotify.SimplePlaylist, otherSongs *[]spotify.ID) {
+			playlistSongs := GetPlaylistTracks(client, ctx, item.ID)
+
+			mut.Lock()
+			*otherSongs = append(*otherSongs, playlistSongs...)
+			mut.Unlock()
+
+			wg.Done()
+		}(client, ctx, item, &otherSongs)
 	}
+	wg.Wait()
 
 	songsToAdd := compare(otherSongs, allSongsTracks)
 	songsToRemove := compare(allSongsTracks, otherSongs)
