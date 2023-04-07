@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/zmb3/spotify/v2"
@@ -12,10 +11,10 @@ func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify
 	if len(songsToAdd) != 0 {
 		_, addErr := client.AddTracksToPlaylist(ctx, spotify.ID(playlistId), songsToAdd...)
 		if addErr != nil {
-			fmt.Printf("%+v", addErr)
+			log.Fatal(addErr)
 		}
 
-		fmt.Printf("Added %d songs to All Songs playlist\n", len(songsToAdd))
+		log.Printf("Added %d songs to All Songs playlist\n", len(songsToAdd))
 	}
 
 	if len(songsToRemove) != 0 {
@@ -24,7 +23,7 @@ func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify
 			log.Fatal(removeErr)
 		}
 
-		fmt.Printf("Removed %d songs from All Songs playlist\n", len(songsToRemove))
+		log.Printf("Removed %d songs from All Songs playlist\n", len(songsToRemove))
 	}
 }
 
