@@ -1,7 +1,7 @@
 # Spotify-all-songs
 
-Basically, this is a copy of my script that adds/removes songs in All Songs playlist, based on other playlists.
-This is my attempt to learn Go
+Basically, this is a copy of my Python script that adds/removes songs in All Songs playlist, based on other playlists.
+Rewritten in Go in attempt to learn it
 
 
 ### Build
