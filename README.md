@@ -10,7 +10,7 @@ This is my attempt to learn Go
 ### Run
 *Export install dir to PATH via `export PATH=$PATH:$(dirname $(go list -f '{{.Target}}' .))`*
 
-`SPOTIFY_ID="<id>" SPOTIFY_SECRET="<Secret>" go run spotify-all-songs`
+`SPOTIFY_ID="<id>" SPOTIFY_SECRET="<Secret>" spotify-all-songs`
 
 
 ### TODO's
