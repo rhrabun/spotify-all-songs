@@ -7,9 +7,36 @@ import (
 	"github.com/zmb3/spotify/v2"
 )
 
-func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify.ID, songsToRemove []spotify.ID, playlistId spotify.ID) {
+func chunkSlice(slice []spotify.ID, chunkSize int) [][]spotify.ID {
+	var chunks [][]spotify.ID
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(slice) {
+			end = len(slice)
+		}
+
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
+}
+
+func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify.ID, songsToRemove []spotify.ID) {
 	if len(songsToAdd) != 0 {
-		_, addErr := client.AddTracksToPlaylist(ctx, spotify.ID(playlistId), songsToAdd...)
+		if len(songsToAdd) > 50 {
+			log.Println("Starting chunking")
+			chunkedSongsToAdd := chunkSlice(songsToAdd, 49)
+			for _, chunk := range chunkedSongsToAdd {
+				addErr := client.AddTracksToLibrary(ctx, chunk...)
+				if addErr != nil {
+					log.Fatal(addErr)
+				}
+			}
+		}
+		addErr := client.AddTracksToLibrary(ctx, songsToAdd...)
 		if addErr != nil {
 			log.Fatal(addErr)
 		}
@@ -18,13 +45,39 @@ func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify
 	}
 
 	if len(songsToRemove) != 0 {
-		_, removeErr := client.RemoveTracksFromPlaylist(ctx, spotify.ID(playlistId), songsToRemove...)
+		removeErr := client.RemoveTracksFromLibrary(ctx, songsToRemove...)
 		if removeErr != nil {
 			log.Fatal(removeErr)
 		}
 
 		log.Printf("Removed %d songs from All Songs playlist\n", len(songsToRemove))
 	}
+}
+
+func getLikedTracks(client *spotify.Client, ctx context.Context) []spotify.ID {
+	var likedTracks []spotify.SavedTrack
+	res, err := client.CurrentUsersTracks(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for page := 1; ; page++ {
+		likedTracks = append(likedTracks, res.Tracks...)
+
+		err := client.NextPage(ctx, res)
+		if err == spotify.ErrNoMorePages {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+	var trackIds []spotify.ID
+	for _, item := range likedTracks {
+		trackIds = append(trackIds, item.ID)
+	}
+
+	return trackIds
 }
 
 func GetPlaylistTracks(client *spotify.Client, ctx context.Context, playlistId spotify.ID) []spotify.ID {

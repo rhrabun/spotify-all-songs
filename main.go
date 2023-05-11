@@ -14,7 +14,6 @@ func main() {
 
 	playlists := GetPlaylists(client, ctx)
 
-	var allSongsId spotify.ID
 	if playlists != nil {
 		// This is more efficient loop to check filter playlists
 		// https://stackoverflow.com/a/20551116
@@ -22,7 +21,6 @@ func main() {
 		for _, item := range playlists {
 			if item.Name == "All Songs" {
 				log.Printf("Found playlist %s with ID: %s\n", item.Name, item.ID)
-				allSongsId = item.ID
 			} else if item.Owner.DisplayName == "Afandi_bobo" && !strings.HasPrefix(item.Name, "_") {
 				playlists[i] = item
 				i++
@@ -34,8 +32,8 @@ func main() {
 		log.Fatal("Couldn't find any playlists")
 	}
 
-	// Get songs from All songs playlist
-	allSongsTracks := GetPlaylistTracks(client, ctx, allSongsId)
+	// Get songs from Liked playlist
+	likedTracks := getLikedTracks(client, ctx)
 
 	// Get songs from other playlists
 	wg := sync.WaitGroup{}
@@ -58,13 +56,13 @@ func main() {
 	}
 	wg.Wait()
 
-	songsToAdd := compare(otherSongs, allSongsTracks)
-	songsToRemove := compare(allSongsTracks, otherSongs)
+	songsToAdd := compare(otherSongs, likedTracks)
+	songsToRemove := compare(likedTracks, otherSongs)
 
 	if len(songsToAdd) == 0 && len(songsToRemove) == 0 {
 		log.Println("Nothing to do here")
 	} else {
-		SyncSongs(client, ctx, songsToAdd, songsToRemove, allSongsId)
+		SyncSongs(client, ctx, songsToAdd, songsToRemove)
 	}
 }
 

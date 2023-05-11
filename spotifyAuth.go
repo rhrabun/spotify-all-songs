@@ -16,9 +16,10 @@ var (
 	auth = spotifyauth.New(
 		spotifyauth.WithRedirectURL(redirectURI),
 		spotifyauth.WithScopes(
-			spotifyauth.ScopeUserReadPrivate,
 			spotifyauth.ScopePlaylistReadPrivate,
 			spotifyauth.ScopePlaylistModifyPrivate,
+			spotifyauth.ScopeUserLibraryModify,
+			spotifyauth.ScopeUserLibraryRead,
 		),
 	)
 	ch    = make(chan *spotify.Client)
