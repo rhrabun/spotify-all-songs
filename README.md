@@ -1,6 +1,6 @@
 # Spotify-all-songs
 
-Basically, this is a copy of my Python script that adds/removes songs in All Songs playlist, based on other playlists.
+Basically, this is a copy of my Python script that adds/removes songs in Liked playlist, based on other playlists.
 Rewritten in Go in attempt to learn it
 
 
