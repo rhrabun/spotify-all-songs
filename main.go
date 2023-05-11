@@ -19,9 +19,7 @@ func main() {
 		// https://stackoverflow.com/a/20551116
 		i := 0
 		for _, item := range playlists {
-			if item.Name == "All Songs" {
-				log.Printf("Found playlist %s with ID: %s\n", item.Name, item.ID)
-			} else if item.Owner.DisplayName == "Afandi_bobo" && !strings.HasPrefix(item.Name, "_") {
+			if item.Owner.DisplayName == "Afandi_bobo" && !strings.HasPrefix(item.Name, "_") {
 				playlists[i] = item
 				i++
 			}
