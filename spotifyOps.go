@@ -25,33 +25,41 @@ func chunkSlice(slice []spotify.ID, chunkSize int) [][]spotify.ID {
 }
 
 func SyncSongs(client *spotify.Client, ctx context.Context, songsToAdd []spotify.ID, songsToRemove []spotify.ID) {
-	if len(songsToAdd) != 0 {
+	if len(songsToAdd) > 0 {
 		if len(songsToAdd) > 50 {
-			log.Println("Starting chunking")
-			chunkedSongsToAdd := chunkSlice(songsToAdd, 49)
+			chunkedSongsToAdd := chunkSlice(songsToAdd, 50)
 			for _, chunk := range chunkedSongsToAdd {
 				addErr := client.AddTracksToLibrary(ctx, chunk...)
 				if addErr != nil {
 					log.Fatal(addErr)
 				}
 			}
+		} else {
+			addErr := client.AddTracksToLibrary(ctx, songsToAdd...)
+			if addErr != nil {
+				log.Fatal(addErr)
+			}
 		}
-		addErr := client.AddTracksToLibrary(ctx, songsToAdd...)
-		if addErr != nil {
-			log.Fatal(addErr)
-		}
-
-		log.Printf("Added %d songs to All Songs playlist\n", len(songsToAdd))
 	}
+	log.Printf("Added %d songs to All Songs playlist\n", len(songsToAdd))
 
-	if len(songsToRemove) != 0 {
-		removeErr := client.RemoveTracksFromLibrary(ctx, songsToRemove...)
-		if removeErr != nil {
-			log.Fatal(removeErr)
+	if len(songsToRemove) > 0 {
+		if len(songsToRemove) > 50 {
+			chunkedSongsToRemove := chunkSlice(songsToRemove, 50)
+			for _, chunk := range chunkedSongsToRemove {
+				removeErr := client.RemoveTracksFromLibrary(ctx, chunk...)
+				if removeErr != nil {
+					log.Fatal(removeErr)
+				}
+			}
+		} else {
+			removeErr := client.RemoveTracksFromLibrary(ctx, songsToRemove...)
+			if removeErr != nil {
+				log.Fatal(removeErr)
+			}
 		}
-
-		log.Printf("Removed %d songs from All Songs playlist\n", len(songsToRemove))
 	}
+	log.Printf("Removed %d songs from All Songs playlist\n", len(songsToRemove))
 }
 
 func getLikedTracks(client *spotify.Client, ctx context.Context) []spotify.ID {
@@ -101,7 +109,10 @@ func GetPlaylistTracks(client *spotify.Client, ctx context.Context, playlistId s
 
 	var trackIds []spotify.ID
 	for _, item := range tracks {
-		trackIds = append(trackIds, item.Track.Track.ID)
+		// Filter out local tracks
+		if !item.IsLocal {
+			trackIds = append(trackIds, item.Track.Track.ID)
+		}
 	}
 
 	return trackIds
